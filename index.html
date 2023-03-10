@@ -59,7 +59,10 @@ rutas.inicio = function(){
             if(item.disabled < ahora){
                 lista += `
             <div class="col-6 text-center">
-              <button id="${item.key}" type="button" class="btn btn-primary btn-lg">${item.titulo}</button>
+              <button id="${item.key}" type="button" class="btn btn-primary btn-lg">
+                ${item.titulo}
+                <span class="badge badge-danger ms-2">${item.nro}</span>
+              </button>
             </div>
                 `;
             } else {
@@ -70,7 +73,10 @@ rutas.inicio = function(){
                 }
                 lista += `
             <div class="col-6 text-center">
-              <button type="button" class="btn btn-outline-primary btn-lg">${item.titulo}</button>
+              <button type="button" class="btn btn-outline-primary btn-lg">
+                ${item.titulo}
+                <span class="badge badge-danger ms-2">${item.nro}</span>
+              </button>
             </div>
                 `;
             }
@@ -311,6 +317,7 @@ var Tareas = (function(){
             return obj;
         },
         lista: function(){
+            let fecha = tmp2dma(Date.now());
             let vec = [];
             let len = localStorage.length;
             for(let i=0;i<len;i++){
@@ -320,11 +327,22 @@ var Tareas = (function(){
                 }
                 let str = localStorage.getItem(key);
                 let obj = JSON.parse(str);
+                let len = obj.eventos.length;
+                let nro = 0;
+                if(len>0){
+                    let item = obj.eventos[len-1];
+                    if(item.includes(fecha)){
+                        item = item.replace(fecha+":","");
+                        nro = parseInt(item,10);
+                    }
+                }
+                
                 vec.push({
                     key: key,
                     disabled: obj.disabled,
-                    titulo: obj.titulo
-                })
+                    titulo: obj.titulo,
+                    nro: nro
+                });
             }
             return vec;
         },
