@@ -4,49 +4,362 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <title>Material Design for Bootstrap</title>
-    <!-- MDB icon -->
-    <link rel="icon" href="img/mdb-favicon.ico" type="image/x-icon" />
-    <!-- Font Awesome -->
+    <title>Habitos</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
-    <!-- Google Fonts Roboto -->
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap"
     />
-    <!-- MDB -->
-    <link rel="stylesheet" href="css/mdb.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.2.0/mdb.min.css" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.2.0/mdb.min.js"></script>
   </head>
   <body>
-    <!-- Start your project here-->
-    <div class="container">
-      <div class="d-flex justify-content-center align-items-center" style="height: 100vh">
-        <div class="text-center">
-          <img
-            class="mb-4"
-            src="https://mdbootstrap.com/img/logo/mdb-transparent-250px.png"
-            style="width: 250px; height: 90px"
-          />
-          <h5 class="mb-3">Thank you for using our product. We're glad you're with us.</h5>
-          <p class="mb-3">MDB Team</p>
-          <a
-            class="btn btn-primary btn-lg"
-            href="https://mdbootstrap.com/docs/standard/getting-started/"
-            target="_blank"
-            role="button"
-            >Start MDB tutorial</a
-          >
+    <nav class="navbar navbar-light bg-warning">
+      <div class="container-fluid justify-content-center">
+        <a class="navbar-brand">Hábitos</a>
+      </div>
+    </nav>
+    <br>
+    <div class="container" id="pantalla"></div>
+    <script type="text/javascript">
+let rutas = {};
+
+rutas.inicio = function(){
+    let strHtml,timer;
+    {strHtml = `
+      <div class="row" id="lista"></div>
+      <hr class="hr" />
+      <div class="row">
+        <div class="col-8 text-center">
+          <button onclick="window.location.href='#listar'" type="button" class="btn btn-primary btn-lg">Lista</button>
+        </div>
+        <div class="col-4 text-center">
+          <button onclick="window.location.href='#nueva'" type="button" class="btn btn-primary btn-lg btn-floating btn-danger">
+            <i class="fas fa-plus"></i>
+          </button>
         </div>
       </div>
-    </div>
-    <!-- End your project here-->
+    `;}
+    document.getElementById("pantalla").innerHTML = strHtml;
+    function printTareas(){
+        if(timer){
+            clearTimeout(timer);
+            timer = null;
+        }
+        let ahora = Date.now();
+        let min = -1;
+        let lasTareas = Tareas.lista();
+        let len = lasTareas.length;
+        let lista = "";
+        for(let i=0;i<len;i++){
+            let item = lasTareas[i];
+            if(item.disabled < ahora){
+                lista += `
+            <div class="col-6 text-center">
+              <button id="${item.key}" type="button" class="btn btn-primary btn-lg">${item.titulo}</button>
+            </div>
+                `;
+            } else {
+                if(min === -1){
+                    min = item.disabled;
+                } else if(min > item.disabled){
+                    min = item.disabled;
+                }
+                lista += `
+            <div class="col-6 text-center">
+              <button type="button" class="btn btn-outline-primary btn-lg">${item.titulo}</button>
+            </div>
+                `;
+            }
+        }
+        if(min > 0){
+            timer = setTimeout(function(){
+                var url = decodeURI(window.location.hash);
+                if(url === "#inicio"){
+                    rutas.inicio();
+                }
+            },min - ahora);
+        }
+        document.getElementById("lista").innerHTML = lista;
+    }
+    document.getElementById("lista").onclick = function(evento){
+        let target = evento.target;
+        while(target.id === ""){
+            target = target.parentNode;
+        }
+        if(target.id === "lista"){
+            return;
+        }
+        Tareas.click(target.id);
+        printTareas();
+    };
+    printTareas();
+    Toast.set("Hola");
+};
+rutas.nueva = function(){
+    let strHtml;
+    {strHtml = `
+      <div class="row">
+        <div class="col-12">
+          <div class="form-outline">
+            <input type="text" id="titulo" class="form-control form-control-lg" />
+            <label class="form-label" for="titulo">Tarea</label>
+          </div>
+        </div>
+      </div><br>
+      <div class="row">
+        <div class="col-12">
+          <div class="form-outline">
+            <input type="number" id="pausa" class="form-control form-control-lg" />
+            <label class="form-label" for="pausa">Pausa (minutos)</label>
+          </div>
+        </div>
+      </div><br>
+      <div class="row">
+        <div class="col-12">
+          <button id="enviar" type="button" class="btn btn-primary">
+            Enviar&nbsp;
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    `;}
+    document.getElementById("pantalla").innerHTML = strHtml;
+    document.querySelectorAll('.form-outline').forEach((formOutline) => {
+      new mdb.Input(formOutline).init();
+    });
+    document.getElementById("enviar").onclick = function(){
+        let titulo = document.getElementById("titulo").value.trim();
+        let pausa = document.getElementById("pausa").value.trim();
+        if(titulo === "" || pausa === ""){
+            Toast.set("Agregue todos los datos");
+            return;
+        }
+        enviando = true;
+        Tareas.nueva(titulo,"xxx",pausa);
+        window.location.href = "#inicio";
+    };
+};
+rutas.listar = function(){
+    let strHtml;
+    {strHtml = `
+      <div class="row" id="lista"></div>
+      <hr class="hr" />
+      <div class="row">
+        <div class="col-12 text-center">
+          <button onclick="window.location.href='#inicio'" type="button" class="btn btn-primary btn-lg">Tareas</button>
+        </div>
+      </div>
+    `;}
+    document.getElementById("pantalla").innerHTML = strHtml;
+    function printTareas(){
+        let lasTareas = Tareas.lista();
+        let len = lasTareas.length;
+        let lista = "";
+        for(let i=0;i<len;i++){
+            let item = lasTareas[i];
+            lista += `
+            <div class="col-6 text-center">
+              <button id="${item.key}" type="button" class="btn btn-primary btn-lg">${item.titulo}</button>
+            </div>
+                `;
+        }
+        document.getElementById("lista").innerHTML = lista;
+    }
+    document.getElementById("lista").onclick = function(evento){
+        let target = evento.target;
+        while(target.id === ""){
+            target = target.parentNode;
+        }
+        if(target.id === "lista"){
+            return;
+        }
+        window.location.href = "#unatarea/"+target.id;
+    };
+    printTareas();
+};
+rutas.unatarea = function(vecUrl){
+    let idTarea = vecUrl[1];
+    let laTarea = Tareas.get(idTarea);
+    let strHtml;
+    {strHtml = `
+      <div class="row" id="titulo">
+        <div class="col-12"><h3>${laTarea.titulo}</h3></div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <table class="table table-striped">
+            <tbody id="estadistica">
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <hr class="hr" />
+      <div class="row">
+        <div class="col-8 text-center">
+          <button onclick="window.location.href='#listar'" type="button" class="btn btn-primary btn-lg">Lista</button>
+        </div>
+        <div class="col-4 text-center">
+          <button id="borrar" type="button" class="btn btn-primary btn-lg btn-floating btn-danger">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;}
+    document.getElementById("pantalla").innerHTML = strHtml;
+    
+    let dia = Date.now();
+    let i = 0;
+    let eventos = laTarea.eventos;
+    let strTabla = "";
+    let len = eventos.length;
+    for(let f=0;f<4;f++){
+        let fila = "";
+        for(let c=0;c<7;c++){
+            let fecha = tmp2dma(dia);
+            let nro = 0;
+            for(let p=0;p<len;p++){
+                let item = eventos[p];
+                if(item.includes(fecha)){
+                    item = item.replace(fecha+":","");
+                    nro = parseInt(item,10);
+                    break;
+                }
+            }
+            fila = `<td>${nro}</td>` + fila;
+            dia -= 24*60*60*1000;
+        }
+        strTabla += `<tr>${fila}</tr>`;
+    }
+    document.getElementById("estadistica").innerHTML = strTabla;
+    
+    document.getElementById("borrar").onclick = function(){
+        Tareas.borrar(idTarea);
+        window.location.href = "#listar";
+    };
+}
 
-    <!-- MDB -->
-    <script type="text/javascript" src="js/mdb.min.js"></script>
-    <!-- Custom scripts -->
-    <script type="text/javascript"></script>
+function reload() {
+    var url = decodeURI(window.location.hash);
+    var vecUrl = url.split('/');
+    if (vecUrl.length === 0){
+        window.location.href = "#inicio";
+    } else if((vecUrl.length === 1 && vecUrl[0] === "")) {
+        rutas.inicio();
+    } else {
+        rutas[vecUrl[0].replace("#", "")](vecUrl);
+    }
+}
+window.onload = function(){
+    window.onhashchange = reload;
+    reload();
+};
+
+function tmp2dma(tmp){
+    let f = new Date(tmp);
+    let m = f.getMonth()+1;
+    let d = f.getDate();
+    let str = "";
+    str += (d<10)?"0"+d:d;
+    str += (m<10)?"0"+m:m;
+    str += f.getFullYear();
+    return str;
+}
+    
+var Toast = (function(){
+    let columna = document.createElement("div");
+    //columna.style.position = "absolute";
+    columna.id = "columna";
+    //columna.style.right = "0px";
+    //columna.style.top = "80px";
+    document.getElementById("pantalla").appendChild(columna);
+    return {
+        set: function(msg){
+            let div = document.createElement("div");
+            div.classList.add("bg-dark","text-white");
+            div.innerHTML = `<p>${msg}</p>`;
+            columna.appendChild(div);
+            setTimeout(function(){
+            //    div.remove();
+            },60000);
+        }
+    };
+}());
+var Tareas = (function(){
+    let cb;
+    return {
+        nueva: function(titulo,tipo,pausa){
+            let obj = {
+                titulo: titulo,
+                disabled: 0,
+                pausa: pausa,
+                tipo: tipo,
+                eventos: []
+            };
+            let key = "" + Date.now();
+            localStorage.setItem(key,JSON.stringify(obj));
+        },
+        get: function(key){
+            let str = localStorage.getItem(key);
+            if(!str){
+                return null;
+            }
+            let obj = JSON.parse(str);
+            return obj;
+        },
+        lista: function(){
+            let vec = [];
+            let len = localStorage.length;
+            for(let i=0;i<len;i++){
+                let key = localStorage.key(i);
+                let str = localStorage.getItem(key);
+                let obj = JSON.parse(str);
+                vec.push({
+                    key: key,
+                    disabled: obj.disabled,
+                    titulo: obj.titulo
+                })
+            }
+            return vec;
+        },
+        borrar: function(key){
+            localStorage.removeItem(key);
+        },
+        click: function(key){
+            let str = localStorage.getItem(key);
+            if(!str){
+                return;
+            }
+            let obj = JSON.parse(str);
+            let ahora = Date.now();
+            if(obj.disabled > ahora){
+                return;
+            }
+            obj.disabled = ahora + obj.pausa*60*1000;
+            let fecha = tmp2dma(ahora);
+            let len = obj.eventos.length;
+            let nro = 0;
+            if(len>0){
+                let item = obj.eventos[len-1];
+                if(item.includes(fecha)){
+                    item = item.replace(fecha+":","");
+                    nro = parseInt(item,10)+1;
+                    obj.eventos[len-1] = fecha+":"+nro;
+                }
+            }
+            if(nro === 0){
+                obj.eventos.push(fecha+":1");
+                while(obj.eventos.length > 28){
+                    obj.eventos.shift();
+                }
+            }
+            localStorage.setItem(key,JSON.stringify(obj));
+        }
+    };
+}());
+    </script>
   </body>
 </html>
