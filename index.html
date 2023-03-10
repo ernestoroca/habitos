@@ -299,7 +299,7 @@ var Tareas = (function(){
                 tipo: tipo,
                 eventos: []
             };
-            let key = "" + Date.now();
+            let key = "Habitos-" + Date.now();
             localStorage.setItem(key,JSON.stringify(obj));
         },
         get: function(key){
@@ -315,6 +315,9 @@ var Tareas = (function(){
             let len = localStorage.length;
             for(let i=0;i<len;i++){
                 let key = localStorage.key(i);
+                if(key.indexOf("Habitos-") !== 0){
+                    continue;
+                }
                 let str = localStorage.getItem(key);
                 let obj = JSON.parse(str);
                 vec.push({
